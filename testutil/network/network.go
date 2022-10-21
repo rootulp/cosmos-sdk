@@ -7,7 +7,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/ethereum/go-ethereum/crypto"
 	"net/http"
 	"net/url"
 	"os"
@@ -16,6 +15,8 @@ import (
 	"sync"
 	"testing"
 	"time"
+
+	"github.com/ethereum/go-ethereum/crypto"
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/rs/zerolog"
@@ -249,6 +250,7 @@ func New(l Logger, baseDir string, cfg Config) (*Network, error) {
 		ctx := server.NewDefaultContext()
 		tmCfg := ctx.Config
 		tmCfg.Consensus.TimeoutCommit = cfg.TimeoutCommit
+		tmCfg.Mempool.MaxTxBytes = 8388608 // 8 MiB
 
 		// Only allow the first validator to expose an RPC, API and gRPC
 		// server/client due to Tendermint in-process constraints.
