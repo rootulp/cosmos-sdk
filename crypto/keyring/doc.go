@@ -1,4 +1,4 @@
-// Package keys provides common key management API.
+// Package keyring provides common key management API.
 //
 // # The Keyring interface
 //
