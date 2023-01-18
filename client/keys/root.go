@@ -13,7 +13,7 @@ func Commands(defaultNodeHome string) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "keys",
 		Short: "Manage your application's keys",
-		Long: `Keyring management commands. These keys may be in any format supported by the
+		Long: `foo: Keyring management commands. These keys may be in any format supported by the
 Tendermint crypto library and can be used by light-clients, full nodes, or any other application
 that needs to sign with a private key.
 
@@ -48,6 +48,7 @@ The pass backend requires GnuPG: https://gnupg.org/
 		RenameKeyCommand(),
 		ParseKeyStringCommand(),
 		MigrateCommand(),
+		DebugCommand(),
 	)
 
 	cmd.PersistentFlags().String(flags.FlagHome, defaultNodeHome, "The application home directory")
