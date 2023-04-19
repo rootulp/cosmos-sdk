@@ -72,7 +72,7 @@ https://github.com/cosmos/cosmos-sdk/blob/v0.47.0-rc1/proto/cosmos/mint/v1beta1/
 
 ## Begin-Block
 
-Minting parameters are recalculated and inflation paid at the beginning of each block.
+At the beginning of each block mint parameters are recalculated and inflation is paid.
 
 ### Inflation rate calculation
 
