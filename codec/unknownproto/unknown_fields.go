@@ -3,6 +3,7 @@ package unknownproto
 import (
 	"bytes"
 	"compress/gzip"
+	"encoding/base64"
 	"errors"
 	"fmt"
 	"io"
@@ -47,11 +48,13 @@ func RejectUnknownFields(bz []byte, msg proto.Message, allowUnknownNonCriticals 
 	if !ok {
 		return hasUnknownNonCriticals, fmt.Errorf("%T does not have a Descriptor() method", msg)
 	}
+	fmt.Printf("desc %v\n", desc)
 
 	fieldDescProtoFromTagNum, _, err := getDescriptorInfo(desc, msg)
 	if err != nil {
 		return hasUnknownNonCriticals, err
 	}
+	fmt.Printf("fieldDescProtoFromTagNum %v\n", fieldDescProtoFromTagNum)
 
 	for len(bz) > 0 {
 		tagNum, wireType, m := protowire.ConsumeTag(bz)
@@ -106,6 +109,7 @@ func RejectUnknownFields(bz []byte, msg proto.Message, allowUnknownNonCriticals 
 		}
 
 		protoMessageName := fieldDescProto.GetTypeName()
+		fmt.Printf("protoMessageName 1: %s\n", protoMessageName)
 		if protoMessageName == "" {
 			switch typ := fieldDescProto.GetType(); typ {
 			case descriptor.FieldDescriptorProto_TYPE_STRING, descriptor.FieldDescriptorProto_TYPE_BYTES:
@@ -122,25 +126,36 @@ func RejectUnknownFields(bz []byte, msg proto.Message, allowUnknownNonCriticals 
 
 		// consume length prefix of nested message
 		_, o := protowire.ConsumeVarint(fieldBytes)
+		fmt.Printf("o %v\n", o)
 		fieldBytes = fieldBytes[o:]
 
 		var msg proto.Message
 		var err error
 
+		fmt.Printf("protoMessageName: %s\n", protoMessageName)
 		if protoMessageName == ".google.protobuf.Any" {
 			// Firstly typecheck types.Any to ensure nothing snuck in.
 			hasUnknownNonCriticalsChild, err := RejectUnknownFields(fieldBytes, (*types.Any)(nil), allowUnknownNonCriticals, resolver)
+			fmt.Printf("hasUnknownNonCriticalsChild: %v\n", hasUnknownNonCriticalsChild)
+			fmt.Printf("err: %v\n", err)
 			hasUnknownNonCriticals = hasUnknownNonCriticals || hasUnknownNonCriticalsChild
+			fmt.Printf("hasUnknownNonCriticals: %v\n", hasUnknownNonCriticals)
 			if err != nil {
 				return hasUnknownNonCriticals, err
 			}
 			// And finally we can extract the TypeURL containing the protoMessageName.
+			fmt.Printf("fieldBytes %v\n", fieldBytes)
+			fmt.Printf("fieldBytes in base64 %v\n", base64.StdEncoding.EncodeToString(fieldBytes))
 			any := new(types.Any)
 			if err := proto.Unmarshal(fieldBytes, any); err != nil {
+				fmt.Printf("hasUnknownNonCriticals: %v err %v\n", hasUnknownNonCriticals, err)
 				return hasUnknownNonCriticals, err
 			}
+			fmt.Printf("any %v\n", any)
 			protoMessageName = any.TypeUrl
 			fieldBytes = any.Value
+			fmt.Printf("Inside RejectUnknownFields\n")
+			fmt.Printf("protoMessageName: %s\n", protoMessageName)
 			msg, err = resolver.Resolve(protoMessageName)
 			if err != nil {
 				return hasUnknownNonCriticals, err

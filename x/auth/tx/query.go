@@ -70,6 +70,7 @@ func QueryTxsByEvents(clientCtx client.Context, events []string, page, limit int
 // error is returned if the transaction does not exist or cannot be queried.
 func QueryTx(clientCtx client.Context, hashHexStr string) (*sdk.TxResponse, error) {
 	hash, err := hex.DecodeString(hashHexStr)
+	fmt.Printf("hash: %v\n", hash)
 	if err != nil {
 		return nil, err
 	}
@@ -87,16 +88,19 @@ func QueryTx(clientCtx client.Context, hashHexStr string) (*sdk.TxResponse, erro
 	if err != nil {
 		return nil, err
 	}
+	fmt.Printf("resTx: %+v\n", resTx)
 
 	resBlocks, err := getBlocksForTxResults(clientCtx, []*coretypes.ResultTx{resTx})
 	if err != nil {
 		return nil, err
 	}
+	fmt.Printf("resBlocks: %v\n", resBlocks)
 
 	out, err := mkTxResult(clientCtx.TxConfig, resTx, resBlocks[resTx.Height])
 	if err != nil {
 		return out, err
 	}
+	fmt.Printf("out: %v\n", out)
 
 	return out, nil
 }

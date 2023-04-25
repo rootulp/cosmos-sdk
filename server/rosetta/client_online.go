@@ -69,6 +69,7 @@ func NewClient(cfg *Config) (*Client, error) {
 
 	var supportedOperations []string
 	for _, ii := range cfg.InterfaceRegistry.ListImplementations(sdk.MsgInterfaceProtoName) {
+		fmt.Printf("Insided NewClient\n")
 		resolvedMsg, err := cfg.InterfaceRegistry.Resolve(ii)
 		if err != nil {
 			continue

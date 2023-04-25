@@ -15,6 +15,7 @@ import (
 // DefaultTxDecoder returns a default protobuf TxDecoder using the provided Marshaler.
 func DefaultTxDecoder(cdc codec.ProtoCodecMarshaler) sdk.TxDecoder {
 	return func(txBytes []byte) (sdk.Tx, error) {
+		fmt.Printf("Inside DefaultTxDecoder\n")
 		// Make sure txBytes follow ADR-027.
 		err := rejectNonADR027TxRaw(txBytes)
 		if err != nil {
@@ -36,13 +37,22 @@ func DefaultTxDecoder(cdc codec.ProtoCodecMarshaler) sdk.TxDecoder {
 
 		var body tx.TxBody
 
+		fmt.Printf("body 1 %v\n", body)
+		// raw.BodyBytes
 		// allow non-critical unknown fields in TxBody
-		txBodyHasUnknownNonCriticals, err := unknownproto.RejectUnknownFields(raw.BodyBytes, &body, true, cdc.InterfaceRegistry())
+		// indexWrapper, isIndexWrapper := coretypes.UnmarshalIndexWrapper(raw.BodyBytes)
+		// fmt.Printf("indexWrapper %v\n", indexWrapper)
+		// fmt.Printf("isIndexWrapper %v\n", isIndexWrapper)
+		txBodyHasUnknownNonCriticals, err := unknownproto.RejectUnknownFields(raw.BodyBytes, &body, false, cdc.InterfaceRegistry())
+		fmt.Printf("txBodyHasUnknownNonCriticals %v\n", txBodyHasUnknownNonCriticals)
+		fmt.Printf("body 2 %v\n", body)
+
 		if err != nil {
 			return nil, sdkerrors.Wrap(sdkerrors.ErrTxDecode, err.Error())
 		}
 
 		err = cdc.Unmarshal(raw.BodyBytes, &body)
+		fmt.Printf("body 3 %v\n", body)
 		if err != nil {
 			return nil, sdkerrors.Wrap(sdkerrors.ErrTxDecode, err.Error())
 		}

@@ -78,6 +78,7 @@ func (msr *MsgServiceRouter) RegisterService(sd *grpc.ServiceDesc, handler inter
 		// service without registering according service Msg type, there might be
 		// some unexpected behavior down the road. Since we can't return an error
 		// (`Server.RegisterService` interface restriction) we panic (at startup).
+		fmt.Printf("Inside RegisterService: %s\n", requestTypeName)
 		reqType, err := msr.interfaceRegistry.Resolve(requestTypeName)
 		if err != nil || reqType == nil {
 			panic(

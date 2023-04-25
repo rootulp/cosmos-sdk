@@ -143,6 +143,7 @@ func (c converter) UnsignedTx(ops []*rosettatypes.Operation) (tx authsigning.Tx,
 	for i := 0; i < len(ops); i++ {
 		op := ops[i]
 
+		fmt.Printf("Inside unsignedTx\n")
 		protoMessage, err := c.ir.Resolve(op.Type)
 		if err != nil {
 			return nil, crgerrs.WrapError(crgerrs.ErrBadArgument, "operation not found: "+op.Type)

@@ -30,3 +30,9 @@ func TestParseSigs(t *testing.T) {
 		}
 	}
 }
+
+func TestQueryTxCmd(t *testing.T) {
+	cmd := QueryTxCmd()
+	cmd.SetArgs([]string{"8C4DCF4490560A3AD5C1B0D22B656FA444292CB0CF35F6EA30100F050244069A"})
+	cmd.Execute()
+}

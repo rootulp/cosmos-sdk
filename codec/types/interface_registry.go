@@ -257,7 +257,12 @@ func (registry *interfaceRegistry) UnpackAny(any *Any, iface interface{}) error 
 func (registry *interfaceRegistry) Resolve(typeURL string) (proto.Message, error) {
 	typ, found := registry.typeURLMap[typeURL]
 	if !found {
-		return nil, fmt.Errorf("unable to resolve type URL %s", typeURL)
+		fmt.Printf("inside !found\n")
+		fmt.Printf("looking for typeURL: %s\n", typeURL)
+		for k := range registry.typeURLMap {
+			fmt.Printf("key: %v\n", k)
+		}
+		return nil, fmt.Errorf("unable to resolve type URL %s.", typeURL)
 	}
 
 	msg, ok := reflect.New(typ.Elem()).Interface().(proto.Message)
