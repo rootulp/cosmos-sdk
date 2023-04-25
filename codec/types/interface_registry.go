@@ -259,9 +259,6 @@ func (registry *interfaceRegistry) Resolve(typeURL string) (proto.Message, error
 	if !found {
 		fmt.Printf("inside !found\n")
 		fmt.Printf("looking for typeURL: %s\n", typeURL)
-		for k := range registry.typeURLMap {
-			fmt.Printf("key: %v\n", k)
-		}
 		return nil, fmt.Errorf("unable to resolve type URL %s.", typeURL)
 	}
 

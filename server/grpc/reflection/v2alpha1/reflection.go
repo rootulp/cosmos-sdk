@@ -111,7 +111,6 @@ func newCodecDescriptor(ir codectypes.InterfaceRegistry) (*CodecDescriptor, erro
 		implementers := ir.ListImplementations(iface)
 		interfaceImplementers := make([]*InterfaceImplementerDescriptor, len(implementers))
 		for j, implementer := range implementers {
-			fmt.Printf("Inside newCodecDescriptor\n")
 			pb, err := ir.Resolve(implementer)
 			if err != nil {
 				return nil, fmt.Errorf("unable to resolve implementing type %s for interface %s", implementer, iface)

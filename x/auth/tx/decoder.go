@@ -43,7 +43,7 @@ func DefaultTxDecoder(cdc codec.ProtoCodecMarshaler) sdk.TxDecoder {
 		// indexWrapper, isIndexWrapper := coretypes.UnmarshalIndexWrapper(raw.BodyBytes)
 		// fmt.Printf("indexWrapper %v\n", indexWrapper)
 		// fmt.Printf("isIndexWrapper %v\n", isIndexWrapper)
-		txBodyHasUnknownNonCriticals, err := unknownproto.RejectUnknownFields(raw.BodyBytes, &body, false, cdc.InterfaceRegistry())
+		txBodyHasUnknownNonCriticals, err := unknownproto.RejectUnknownFields(raw.BodyBytes, &body, true, cdc.InterfaceRegistry())
 		fmt.Printf("txBodyHasUnknownNonCriticals %v\n", txBodyHasUnknownNonCriticals)
 		fmt.Printf("body 2 %v\n", body)
 

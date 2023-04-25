@@ -40,6 +40,10 @@ func RejectUnknownFieldsStrict(bz []byte, msg proto.Message, resolver jsonpb.Any
 // This function traverses inside of messages nested via google.protobuf.Any. It does not do any deserialization of the proto.Message.
 // An AnyResolver must be provided for traversing inside google.protobuf.Any's.
 func RejectUnknownFields(bz []byte, msg proto.Message, allowUnknownNonCriticals bool, resolver jsonpb.AnyResolver) (hasUnknownNonCriticals bool, err error) {
+	fmt.Printf("msg %v\n", msg)
+	fmt.Printf("msg string %v\n", msg.String())
+	fmt.Printf("bz %v\n", bz)
+	fmt.Printf("bz in base64 %v\n", base64.StdEncoding.EncodeToString(bz))
 	if len(bz) == 0 {
 		return hasUnknownNonCriticals, nil
 	}

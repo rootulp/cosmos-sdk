@@ -360,6 +360,7 @@ $ %s query tx --%s=%s <sig1_base64>,<sig2_base64...>
 					if err != nil {
 						return err
 					}
+					fmt.Printf("output %v\n", output.Tx)
 
 					if output.Empty() {
 						return fmt.Errorf("no transaction found with hash %s", args[0])
