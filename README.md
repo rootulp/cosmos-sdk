@@ -1,81 +1,49 @@
-<!--
-parent:
-  order: false
--->
+# cosmos-sdk
 
-<div align="center">
-  <h1> Cosmos SDK </h1>
-</div>
+This repo is a fork of the [cosmos/cosmos-sdk](https://github.com/cosmos/cosmos-sdk) with the following changes:
 
-![banner](docs/cosmos-sdk-image.jpg)
+## Changes
 
-<div align="center">
-  <a href="https://github.com/cosmos/cosmos-sdk/blob/main/LICENSE">
-    <img alt="License: Apache-2.0" src="https://img.shields.io/github/license/cosmos/cosmos-sdk.svg" />
-  </a>
-  <a href="https://pkg.go.dev/github.com/cosmos/cosmos-sdk?tab=doc">
-    <img alt="GoDoc" src="https://pkg.go.dev/github.com/cosmos/cosmos-sdk?status.svg" />
-  </a>
-  <a href="https://goreportcard.com/report/github.com/cosmos/cosmos-sdk">
-    <img alt="Go report card" src="https://goreportcard.com/badge/github.com/cosmos/cosmos-sdk" />
-  </a>
-  <a href="https://codecov.io/gh/cosmos/cosmos-sdk">
-    <img alt="Code Coverage" src="https://codecov.io/gh/cosmos/cosmos-sdk/branch/main/graph/badge.svg" />
-  </a>
-</div>
-<div align="center">
-  <a href="https://github.com/cosmos/cosmos-sdk">
-    <img alt="Lines Of Code" src="https://tokei.rs/b1/github/cosmos/cosmos-sdk" />
-  </a>
-  <a href="https://discord.gg/AzefAFd">
-    <img alt="Discord" src="https://img.shields.io/discord/669268347736686612.svg" />
-  </a>
-  <a href="https://sourcegraph.com/github.com/cosmos/cosmos-sdk?badge">
-    <img alt="Imported by" src="https://sourcegraph.com/github.com/cosmos/cosmos-sdk/-/badge.svg" />
-  </a>
-    <img alt="Sims" src="https://github.com/cosmos/cosmos-sdk/workflows/Sims/badge.svg" />
-    <img alt="Lint Satus" src="https://github.com/cosmos/cosmos-sdk/workflows/Lint/badge.svg" />
-</div>
+Rationale for the fork
 
-The Cosmos SDK is a framework for building blockchain applications. [Tendermint Core (BFT Consensus)](https://github.com/tendermint/tendermint) and the Cosmos SDK are written in the Golang programming language. Cosmos SDK is used to build [Gaia](https://github.com/cosmos/gaia), the first implementation of the Cosmos Hub.
+1. Early adoption of `PrepareProposal` and `ProcessProposal`. This was added to the fork because at the time of development, a Cosmos SDK release was not available with these ABCI methods.
+1. The addition of `chainID` to baseapp. (TODO: why?)
+1. Overriding the consensus params version to the app version. (TODO: why?)
 
-**WARNING**: The Cosmos SDK has mostly stabilized, but we are still making some
-breaking changes.
+Smaller changes
 
-**Note**: Requires [Go 1.19+](https://go.dev/dl)
+1. The addition of a `SetTxDecoder` on tx config
+1. `start_time` added to vesting MsgCreateVestingAccount
+1. In server/util.go remove `conf.Consensus.TimeoutCommit = 5 * time.Second`
+1. In genutil/client/cli/init.go ensure that the node starts with DefaultConsensusParams
+    1. In server/util.go add DefaultConsensusParams on Context
+1. In auth/tx/query.go disable the prove flag when querying transactions
+1. Add a voter attribute to the EventTypeProposalVote event
 
-## Quick Start
+Changes made that we may be able to revert
 
-To learn how the Cosmos SDK works from a high-level perspective, see the Cosmos SDK [High-Level Intro](./docs/intro/overview.md).
+1. Override the default keyringBackend from `os` to `test`. Maybe move to celestia-app
+1. Increase DefaultGasLimit from `200000` to `210000`. Why? If we needed, can we move this to celestia-app?
+1. Remove `Evidence` from grpc/tmservice/types.pb.go. Why? seems residual and we can prob revert this.
+1. `SignLedgerAminoJSON` in keyring b/c Ledger issue. Can potentially revert by downgrading to cosmos-ledger-go 0.12.4
+1. Override simapp test helpers `DefaultGenTxGas` from 10000000 to 2600000
 
-If you want to get started quickly and learn how to build on top of Cosmos SDK, visit [Cosmos SDK Tutorials](https://tutorials.cosmos.network). You can also fork the tutorial's repository to get started building your own Cosmos SDK application.
+Changes made to make it easier to maintain this fork
 
-For more information, see the [Cosmos SDK Documentation](./docs/).
+1. Modify CODEOWNERS to Celestia maintainers
+1. Modify Github CI workflows to include `release/**` branches
+1. Modify Github CI workflows to not run some things
+1. Disable staticcheck golangci lint
+1. Delete cosmovisor
+
+## Branches
+
+1. [v0.46.x-celestia](https://github.com/celestiaorg/cosmos-sdk/tree/release/v0.46.x-celestia) is based on the `v0.46.x` release branch from upstream
+2. [main](https://github.com/celestiaorg/cosmos-sdk/tree/main) contains breaking changes (TODO: elaborate on why?)
 
 ## Contributing
 
-See [CONTRIBUTING.md](./CONTRIBUTING.md) for details how to contribute and participate in our [dev calls](./CONTRIBUTING.md#teams-dev-calls).
-If you want to follow the updates or learn more about the latest design then join our [Discord](https://discord.com/invite/cosmosnetwork).
+This repo intends on preserving the minimal possible diff with cometbft/cometbft to make fetching upstream changes easy. If the proposed contribution is
 
-## Tools and Frameworks
-
-The Cosmos ecosystem is vast. We will only make a few notable mentions here.
-
-+ [Tools](https://v1.cosmos.network/tools): notable frameworks and modules.
-+ [CosmJS](https://github.com/cosmos/cosmjs): the Swiss Army knife to power JavaScript based client solutions.
-
-### Cosmos Hub Mainnet
-
-The Cosmos Hub application, `gaia`, has moved to its own [cosmos/gaia repository](https://github.com/cosmos/gaia). Go there to join the Cosmos Hub mainnet and more.
-
-### Inter-Blockchain Communication (IBC)
-
-The IBC module for the Cosmos SDK has moved to its own [cosmos/ibc-go repository](https://github.com/cosmos/ibc-go). Go there to build and integrate with the IBC module.
-
-### Ignite CLI
-
-Ignite CLI is the all-in-one platform to build, launch, and maintain any crypto application on a sovereign and secured blockchain. If you are building a new app or a new module, use [Ignite CLI](https://github.com/ignite-hq/cli) to get started and speed up development.
-
-## Disambiguation
-
-This Cosmos SDK project is not related to the [React-Cosmos](https://github.com/react-cosmos/react-cosmos) project (yet). Many thanks to Evan Coury and Ovidiu (@skidding) for this Github organization name. As per our agreement, this disambiguation notice will stay here.
+* specific to Celestia: consider if [celestia-app](https://github.com/celestiaorg/celestia-app) is a better target
+* not specific to Celestia: consider making the contribution upstream in [cosmos/cosmos-sdk](https://github.com/cosmos/cosmos-sdk)
