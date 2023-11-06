@@ -15,18 +15,17 @@ Smaller modifications include:
 1. The addition of a `SetTxDecoder` on tx config so that celestia-app can override the default tx decoder with one that supports decoding `BlobTx`s.
 1. The addition of a `start_time` to the vesting module's `MsgCreateVestingAccount` so that vesting accounts can be created with a delayed start time.
 1. The addition of a voter attribute to the `EventTypeProposalVote` event
+1. Allow celestia-app to override the default consensus params via the `init` command
 
 Modifications that need to be investigated:
 
 1. In server/util.go remove `conf.Consensus.TimeoutCommit = 5 * time.Second`
-1. In genutil/client/cli/init.go ensure that the node starts with DefaultConsensusParams
-    1. In server/util.go add DefaultConsensusParams on Context
 
 Modifications that make it easier to maintain this fork:
 
 1. Modify CODEOWNERS to Celestia maintainers
 1. Modify Github CI workflows to include `release/**` branches
-1. Modify Github CI workflows to not run some things
+1. Modify Github CI workflows to not run some workflows
 1. Delete cosmovisor
 
 Modifications that may be revertable:
@@ -42,11 +41,10 @@ Modifications that may be revertable:
 ## Branches
 
 1. [v0.46.x-celestia](https://github.com/celestiaorg/cosmos-sdk/tree/release/v0.46.x-celestia) is based on the `v0.46.x` release branch from upstream
-2. [main](https://github.com/celestiaorg/cosmos-sdk/tree/main) contains breaking changes (TODO: elaborate on why?)
 
 ## Contributing
 
-This repo intends on preserving the minimal possible diff with cometbft/cometbft to make fetching upstream changes easy. If the proposed contribution is
+This repo intends on preserving the minimal possible diff with [cosmos/cosmos-sdk](https://github.com/cosmos/cosmos-sdk) to make fetching upstream changes easy. If the proposed contribution is
 
 * specific to Celestia: consider if [celestia-app](https://github.com/celestiaorg/celestia-app) is a better target
 * not specific to Celestia: consider making the contribution upstream in [cosmos/cosmos-sdk](https://github.com/cosmos/cosmos-sdk)
