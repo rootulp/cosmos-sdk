@@ -6,9 +6,9 @@ This repo is a fork of [cosmos/cosmos-sdk](https://github.com/cosmos/cosmos-sdk)
 
 Larger modifications include:
 
-1. Early adoption of `PrepareProposal` and `ProcessProposal`. This was added to the fork because at the time of development, a Cosmos SDK release was not available with these ABCI methods.
-1. The addition of `chainID` to baseapp.
-1. Overriding the consensus params version to the app version.
+1. Early adoption of `PrepareProposal` and `ProcessProposal`. This was added to the fork because at the time of development, a Cosmos SDK release was not available with these ABCI methods. Ref: https://github.com/celestiaorg/cosmos-sdk/commit/233a229cabf0599aed91b6b6697c268753731b2c
+1. The addition of `chainID` to baseapp so that a branch of state can be used in PrepareProposal and ProcessProposal. Ref: https://github.com/celestiaorg/cosmos-sdk/pull/326
+1. The consensus params version is overriden to the `AppVersion` to enable EndBlocker to update the `AppVersion`. Ref: https://github.com/celestiaorg/cosmos-sdk/pull/321
 
 Smaller modifications include:
 
@@ -16,10 +16,6 @@ Smaller modifications include:
 1. The addition of a `start_time` to the vesting module's `MsgCreateVestingAccount` so that vesting accounts can be created with a delayed start time.
 1. The addition of a voter attribute to the `EventTypeProposalVote` event
 1. Allow celestia-app to override the default consensus params via the `init` command
-
-Modifications that need to be investigated:
-
-1. In server/util.go remove `conf.Consensus.TimeoutCommit = 5 * time.Second`
 
 Modifications that make it easier to maintain this fork:
 
@@ -37,6 +33,7 @@ Modifications that may be revertable:
 1. Override simapp test helpers `DefaultGenTxGas` from 10000000 to 2600000.
 1. Disable staticcheck golangci lint after fixing lint errors.
 1. In auth/tx/query.go disable the prove flag when querying transactions
+1. In server/util.go remove `conf.Consensus.TimeoutCommit = 5 * time.Second`
 
 ## Branches
 
