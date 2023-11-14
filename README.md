@@ -28,7 +28,6 @@ Modifications that may be revertable:
 1. Override the default keyringBackend from `os` to `test`. Maybe move to celestia-app
 1. Increase `DefaultGasLimit` from 200000 to 210000.
 1. Remove `Evidence` from grpc/tmservice/types.pb.go.
-1. The addition of `SignLedgerAminoJSON` in keyring b/c Ledger issue.
 1. Override simapp test helpers `DefaultGenTxGas` from 10000000 to 2600000.
 1. Disable staticcheck golangci lint after fixing lint errors.
 1. In auth/tx/query.go disable the prove flag when querying transactions
