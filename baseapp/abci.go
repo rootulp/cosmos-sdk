@@ -296,7 +296,7 @@ func (app *BaseApp) DeliverTx(req abci.RequestDeliverTx) (res abci.ResponseDeliv
 	}
 }
 
-// PrepareProposal fullfills the celestia-core version of the ACBI interface. It
+// PrepareProposal fullfills the celestia-core version of the ABCI interface. It
 // allows for arbitrary processing steps before transaction data is included in
 // the block.
 func (app *BaseApp) PrepareProposal(req abci.RequestPrepareProposal) abci.ResponsePrepareProposal {
