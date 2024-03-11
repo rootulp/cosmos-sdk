@@ -5,6 +5,7 @@ package keyring
 
 import (
 	"bytes"
+	"fmt"
 	"strings"
 	"testing"
 
@@ -139,13 +140,22 @@ func TestAltKeyring_SaveLedgerKey(t *testing.T) {
 }
 
 func TestSignWithLedger(t *testing.T) {
-	path := hd.NewFundraiserParams(0, sdk.CoinType, 0)
-	priv, _, err := ledger.NewPrivKeySecp256k1(*path, "cosmos")
-	pub := priv.PubKey()
-	record, err := NewLedgerRecord("ledger", pub, path)
+	// Create two distinct Ledger records
+	pathA := hd.NewFundraiserParams(0, sdk.CoinType, 0)
+	privA, _, err := ledger.NewPrivKeySecp256k1(*pathA, "cosmos")
+	recordA, err := NewLedgerRecord("ledgerA", privA.PubKey(), pathA)
 	require.NoError(t, err)
-	pubKey, err := record.GetPubKey()
+	pubA, err := recordA.GetPubKey()
 	require.NoError(t, err)
+
+	pathB := hd.NewFundraiserParams(0, sdk.CoinType, 1)
+	privB, _, err := ledger.NewPrivKeySecp256k1(*pathB, "cosmos")
+	recordB, err := NewLedgerRecord("ledgerB", privB.PubKey(), pathA)
+	require.NoError(t, err)
+	pubB, err := recordB.GetPubKey()
+	require.NoError(t, err)
+
+	require.NotEqual(t, pubA, pubB)
 
 	type testCase struct {
 		name    string
@@ -158,11 +168,19 @@ func TestSignWithLedger(t *testing.T) {
 	testCases := []testCase{
 		{
 			name:    "ordinary ledger tx",
-			record:  *record,
+			record:  *recordA,
 			msg:     []byte("msg"),
 			wantSig: []byte{0xfb, 0x93, 0x1b, 0xb9, 0x75, 0x25, 0xe7, 0x99, 0x64, 0xc2, 0x78, 0xf7, 0x94, 0x9a, 0x63, 0x83, 0xe2, 0x59, 0x76, 0x48, 0x1d, 0x2, 0xbc, 0xc2, 0x83, 0x21, 0x24, 0x4b, 0x95, 0x99, 0x25, 0x8b, 0x30, 0x38, 0x6, 0x61, 0x79, 0x9a, 0x9e, 0x8, 0x98, 0xfd, 0x34, 0xc6, 0x7e, 0x47, 0x4d, 0x5f, 0xe, 0xf3, 0xc3, 0xe7, 0xdd, 0xe3, 0x89, 0x80, 0xda, 0x8b, 0x48, 0x15, 0x34, 0xce, 0xdf, 0x1c},
-			wantPub: pubKey,
+			wantPub: pubA,
 			wantErr: nil,
+		},
+		{
+			name:    "want error when the public key the user attempted to sign with doesn't match the public key on the ledger",
+			record:  *recordB,
+			msg:     []byte("msg"),
+			wantSig: []byte(nil),
+			wantPub: nil,
+			wantErr: fmt.Errorf("the public key that the user attempted to sign with PubKeySecp256k1{0260D0487A3DFCE9228EEE2D0D83A40F6131F551526C8E52066FE7FE1E4A509666} does not match the public key on the ledger device PubKeySecp256k1{034FEF9CD7C4C63588D3B03FEB5281B9D232CBA34D6F3D71AEE59211FFBFE1FE87}"),
 		},
 	}
 
