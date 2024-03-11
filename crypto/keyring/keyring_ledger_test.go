@@ -8,9 +8,12 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
 	"github.com/cosmos/cosmos-sdk/crypto/hd"
+	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
+	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	"github.com/cosmos/cosmos-sdk/types"
 )
 
@@ -132,4 +135,51 @@ func TestAltKeyring_SaveLedgerKey(t *testing.T) {
 
 	path := ledgerInfo.GetPath()
 	require.Equal(t, "m/44'/118'/3'/0/1", path.String())
+}
+
+func TestSignWithLedger(t *testing.T) {
+	// cdc := getCodec()
+	// kr, err := New(t.Name(), BackendTest, t.TempDir(), nil, cdc)
+	// require.NoError(t, err)
+
+	// uid := someKey
+	// mnemonic, _, err := kr.NewMnemonic(uid, English, sdk.FullFundraiserPath, DefaultBIP39Passphrase, hd.Secp256k1)
+	// require.NoError(t, err)
+
+	priv := cryptotypes.PrivKey(secp256k1.GenPrivKey())
+	pub := priv.PubKey()
+
+	path := hd.NewFundraiserParams(4, 12345, 57)
+	record, err := NewLedgerRecord("ledger", pub, path)
+	require.NoError(t, err)
+	pubKey, err := record.GetPubKey()
+	require.NoError(t, err)
+
+	type testCase struct {
+		name    string
+		record  Record
+		msg     []byte
+		wantSig []byte
+		wantPub cryptotypes.PubKey
+		wantErr error
+	}
+	testCases := []testCase{
+		{
+			name:    "ordinary ledger tx",
+			record:  *record,
+			msg:     []byte("msg"),
+			wantSig: []byte(nil),
+			wantPub: pubKey,
+			wantErr: nil,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			sig, pub, err := SignWithLedger(&tc.record, tc.msg)
+			assert.Equal(t, tc.wantSig, sig)
+			assert.Equal(t, tc.wantPub, pub)
+			assert.Equal(t, tc.wantErr, err)
+		})
+	}
 }
