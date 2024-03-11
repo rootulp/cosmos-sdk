@@ -12,9 +12,10 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/cosmos/cosmos-sdk/crypto/hd"
-	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
+	"github.com/cosmos/cosmos-sdk/crypto/ledger"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	"github.com/cosmos/cosmos-sdk/types"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
 func TestInMemoryCreateLedger(t *testing.T) {
@@ -138,18 +139,9 @@ func TestAltKeyring_SaveLedgerKey(t *testing.T) {
 }
 
 func TestSignWithLedger(t *testing.T) {
-	// cdc := getCodec()
-	// kr, err := New(t.Name(), BackendTest, t.TempDir(), nil, cdc)
-	// require.NoError(t, err)
-
-	// uid := someKey
-	// mnemonic, _, err := kr.NewMnemonic(uid, English, sdk.FullFundraiserPath, DefaultBIP39Passphrase, hd.Secp256k1)
-	// require.NoError(t, err)
-
-	priv := cryptotypes.PrivKey(secp256k1.GenPrivKey())
+	path := hd.NewFundraiserParams(0, sdk.CoinType, 0)
+	priv, _, err := ledger.NewPrivKeySecp256k1(*path, "cosmos")
 	pub := priv.PubKey()
-
-	path := hd.NewFundraiserParams(4, 12345, 57)
 	record, err := NewLedgerRecord("ledger", pub, path)
 	require.NoError(t, err)
 	pubKey, err := record.GetPubKey()
@@ -168,7 +160,7 @@ func TestSignWithLedger(t *testing.T) {
 			name:    "ordinary ledger tx",
 			record:  *record,
 			msg:     []byte("msg"),
-			wantSig: []byte(nil),
+			wantSig: []byte{0xfb, 0x93, 0x1b, 0xb9, 0x75, 0x25, 0xe7, 0x99, 0x64, 0xc2, 0x78, 0xf7, 0x94, 0x9a, 0x63, 0x83, 0xe2, 0x59, 0x76, 0x48, 0x1d, 0x2, 0xbc, 0xc2, 0x83, 0x21, 0x24, 0x4b, 0x95, 0x99, 0x25, 0x8b, 0x30, 0x38, 0x6, 0x61, 0x79, 0x9a, 0x9e, 0x8, 0x98, 0xfd, 0x34, 0xc6, 0x7e, 0x47, 0x4d, 0x5f, 0xe, 0xf3, 0xc3, 0xe7, 0xdd, 0xe3, 0x89, 0x80, 0xda, 0x8b, 0x48, 0x15, 0x34, 0xce, 0xdf, 0x1c},
 			wantPub: pubKey,
 			wantErr: nil,
 		},
@@ -177,9 +169,9 @@ func TestSignWithLedger(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			sig, pub, err := SignWithLedger(&tc.record, tc.msg)
+			assert.Equal(t, tc.wantErr, err)
 			assert.Equal(t, tc.wantSig, sig)
 			assert.Equal(t, tc.wantPub, pub)
-			assert.Equal(t, tc.wantErr, err)
 		})
 	}
 }
