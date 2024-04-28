@@ -39,6 +39,21 @@ type (
 	// an older version of the software. In particular, if a module changed the substore key name
 	// (or removed a substore) between two versions of the software.
 	StoreLoader func(ms sdk.CommitMultiStore) error
+
+	// MigrateModuleFn gets called when there is a change in the app version. It is
+	// triggered in the Commit stage after all state transitions have occurred.
+	MigrateModuleFn func(ctx sdk.Context, fromVersion, toVersion uint64) error
+
+	// MigrateStoreFn gets called when there is a change in the app version. It is
+	// triggered in the Commit stage after all state transitions have occurred.
+	MigrateStoreFn func(fromVersion, toVersion uint64) (StoreMigrations, error)
+
+	// StoreMigrations is a type that contains the added and removed stores for a
+	// migration.
+	StoreMigrations struct {
+		Added   map[string]*storetypes.KVStoreKey
+		Deleted map[string]*storetypes.KVStoreKey
+	}
 )
 
 // BaseApp reflects the ABCI application implementation.
@@ -57,6 +72,7 @@ type BaseApp struct { // nolint: maligned
 	snapshotData
 	abciData
 	moduleRouter
+	migrator
 
 	// volatile states:
 	//
@@ -135,6 +151,11 @@ type appStore struct {
 	fauxMerkleMode bool // if true, IAVL MountStores uses MountStoresDB for simulation speed.
 }
 
+type migrator struct {
+	moduleMigrator MigrateModuleFn
+	storeMigrator  MigrateStoreFn
+}
+
 type moduleRouter struct {
 	router           sdk.Router        // handle any kind of message
 	queryRouter      sdk.QueryRouter   // router for redirecting query calls
@@ -202,15 +223,17 @@ func (app *BaseApp) Name() string {
 	return app.name
 }
 
-// AppVersion returns the application's protocol version.
-func (app *BaseApp) AppVersion(ctx sdk.Context) uint64 {
+func (app *BaseApp) InitAppVersion(ctx sdk.Context) {
 	if app.appVersion == 0 && app.paramStore.Has(ctx, ParamStoreKeyVersionParams) {
 		var vp tmproto.VersionParams
-
 		app.paramStore.Get(ctx, ParamStoreKeyVersionParams, &vp)
 		// set the app version
 		app.appVersion = vp.AppVersion
 	}
+}
+
+// AppVersion returns the application's protocol version.
+func (app *BaseApp) AppVersion() uint64 {
 	return app.appVersion
 }
 
@@ -491,6 +514,8 @@ func (app *BaseApp) GetConsensusParams(ctx sdk.Context) *abci.ConsensusParams {
 
 		app.paramStore.Get(ctx, ParamStoreKeyVersionParams, &vp)
 		cp.Version = &vp
+	} else if app.appVersion != 0 {
+		cp.Version = &tmproto.VersionParams{AppVersion: app.appVersion}
 	}
 
 	return cp
@@ -516,9 +541,16 @@ func (app *BaseApp) StoreConsensusParams(ctx sdk.Context, cp *abci.ConsensusPara
 	app.paramStore.Set(ctx, ParamStoreKeyBlockParams, cp.Block)
 	app.paramStore.Set(ctx, ParamStoreKeyEvidenceParams, cp.Evidence)
 	app.paramStore.Set(ctx, ParamStoreKeyValidatorParams, cp.Validator)
-	// NOTE: we only persist the app version from v2 onwards
-	if cp.Version != nil && cp.Version.AppVersion >= 2 {
+	if app.paramStore.Has(ctx, ParamStoreKeyVersionParams) {
 		app.paramStore.Set(ctx, ParamStoreKeyVersionParams, cp.Version)
+	}
+}
+
+// SetInitialAppVersionInConsensusParams sets the initial app version
+// in the consensus params if it has not yet been set.
+func (app *BaseApp) SetInitialAppVersionInConsensusParams(ctx sdk.Context, version uint64) {
+	if !app.paramStore.Has(ctx, ParamStoreKeyVersionParams) {
+		app.paramStore.Set(ctx, ParamStoreKeyVersionParams, &tmproto.VersionParams{AppVersion: version})
 	}
 }
 

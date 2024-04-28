@@ -3,6 +3,7 @@ package baseapp
 import (
 	"fmt"
 	"io"
+	"sort"
 
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 	dbm "github.com/tendermint/tm-db"
@@ -12,6 +13,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/snapshots"
 	snapshottypes "github.com/cosmos/cosmos-sdk/snapshots/types"
 	"github.com/cosmos/cosmos-sdk/store"
+	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
@@ -113,9 +115,7 @@ func (app *BaseApp) SetVersion(v string) {
 
 // SetAppVersion sets the application's protocol version
 func (app *BaseApp) SetAppVersion(ctx sdk.Context, version uint64) {
-	// TODO: could make this less hacky in the future since the SDK
-	// shouldn't have to know about the app versioning scheme
-	if version >= 2 {
+	if app.paramStore.Has(ctx, ParamStoreKeyVersionParams) {
 		vp := &tmproto.VersionParams{AppVersion: version}
 		app.paramStore.Set(ctx, ParamStoreKeyVersionParams, vp)
 	}
@@ -160,6 +160,20 @@ func (app *BaseApp) SetEndBlocker(endBlocker sdk.EndBlocker) {
 	}
 
 	app.endBlocker = endBlocker
+}
+
+func (app *BaseApp) SetMigrateModuleFn(migrator MigrateModuleFn) {
+	if app.sealed {
+		panic("cannot set migrate module fn: baseapp is sealed")
+	}
+	app.migrator.moduleMigrator = migrator
+}
+
+func (app *BaseApp) SetMigrateStoreFn(migrator MigrateStoreFn) {
+	if app.sealed {
+		panic("cannot set migrate store fn: baseapp is sealed")
+	}
+	app.migrator.storeMigrator = migrator
 }
 
 func (app *BaseApp) SetAnteHandler(ah sdk.AnteHandler) {
@@ -264,4 +278,27 @@ func (app *BaseApp) SetQueryMultiStore(ms sdk.MultiStore) {
 		panic("SetQueryMultiStore() on sealed BaseApp")
 	}
 	app.qms = ms
+}
+
+// ToStoreUpgrades converts the StoreMigrations to StoreUpgrades.
+func (sm StoreMigrations) ToStoreUpgrades() *storetypes.StoreUpgrades {
+	added := make([]string, len(sm.Added))
+	deleted := make([]string, len(sm.Deleted))
+	i := 0
+	for name := range sm.Added {
+		added[i] = name
+		i++
+	}
+	i = 0
+	for name := range sm.Deleted {
+		deleted[i] = name
+		i++
+	}
+	// sort them to ensure deterministic order
+	sort.Strings(added)
+	sort.Strings(deleted)
+	return &storetypes.StoreUpgrades{
+		Added:   added,
+		Deleted: deleted,
+	}
 }
