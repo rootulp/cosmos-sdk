@@ -1073,6 +1073,7 @@ func commitStores(version int64, storeMap map[types.StoreKey]types.CommitKVStore
 		if store.GetStoreType() == types.StoreTypeTransient {
 			continue
 		}
+		fmt.Printf("key %v, commitID.Hash %X\n", key, commitID.Hash)
 
 		if !removalMap[key] {
 			si := types.StoreInfo{}
