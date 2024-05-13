@@ -349,7 +349,7 @@ func (app *BaseApp) MountStore(key storetypes.StoreKey, typ storetypes.StoreType
 //
 // Side-effect: calls baseapp.Init()
 func (app *BaseApp) LoadLatestVersion() error {
-	app.logger.Debug(fmt.Sprintf("Loading latest version %v\n", app.cms.LatestVersion()))
+	app.logger.Debug(fmt.Sprintf("loading latest version %v\n", app.cms.LatestVersion()))
 	err := app.storeLoader(app.cms)
 	if err != nil {
 		return fmt.Errorf("failed to load latest version: %w", err)
