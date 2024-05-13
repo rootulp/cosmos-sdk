@@ -310,7 +310,7 @@ func (app *BaseApp) MountStores(keys ...storetypes.StoreKey) {
 // BaseApp multistore.
 func (app *BaseApp) MountKVStores(keys map[string]*storetypes.KVStoreKey) {
 	for _, key := range keys {
-		app.logger.Debug("Mounting KVStore", key)
+		app.logger.Debug("mounting KVStore", key)
 		if !app.fauxMerkleMode {
 			app.MountStore(key, storetypes.StoreTypeIAVL)
 		} else {
