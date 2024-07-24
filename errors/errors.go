@@ -38,7 +38,8 @@ func Register(codespace string, code uint32, description string) *Error {
 func RegisterWithGRPCCode(codespace string, code uint32, grpcCode grpccodes.Code, description string) *Error {
 	// TODO - uniqueness is (codespace, code) combo
 	if e := getUsed(codespace, code); e != nil {
-		panic(fmt.Sprintf("error with code %d is already registered: %q", code, e.desc))
+		fmt.Printf("warning: error with code %d is already registered: %q", code, e.desc)
+		return e
 	}
 
 	err := &Error{codespace: codespace, code: code, desc: description, grpcCode: grpcCode}
