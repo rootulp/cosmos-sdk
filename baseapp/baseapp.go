@@ -935,3 +935,9 @@ func makeABCIData(msgResponses []*codectypes.Any) ([]byte, error) {
 func (app *BaseApp) Close() error {
 	return nil
 }
+
+func (app *BaseApp) RunMigrations(request abci.RequestRunMigrations) abci.ResponseRunMigrations {
+	return abci.ResponseRunMigrations{
+		AppHash: []byte{},
+	}
+}
