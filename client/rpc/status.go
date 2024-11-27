@@ -67,7 +67,7 @@ func StatusCommand() *cobra.Command {
 				return err
 			}
 
-			cmd.Println(string(output))
+			cmd.OutOrStdout().Write(output)
 			return nil
 		},
 	}
