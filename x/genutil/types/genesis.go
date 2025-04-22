@@ -96,7 +96,7 @@ func AppGenesisFromReader(reader io.Reader) (*AppGenesis, error) {
 	}
 
 	var appGenesis AppGenesis
-	if err := cmtjson.Unmarshal(jsonBlob, &appGenesis); err != nil {
+	if err := json.Unmarshal(jsonBlob, &appGenesis); err != nil {
 		// fallback to CometBFT genesis
 		var ctmGenesis cmttypes.GenesisDoc
 		if err2 := cmtjson.Unmarshal(jsonBlob, &ctmGenesis); err2 != nil {
