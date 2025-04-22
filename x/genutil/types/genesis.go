@@ -80,7 +80,7 @@ func (ag *AppGenesis) ValidateAndComplete() error {
 
 // SaveAs is a utility method for saving AppGenesis as a JSON file.
 func (ag *AppGenesis) SaveAs(file string) error {
-	appGenesisBytes, err := json.MarshalIndent(ag, "", "  ")
+	appGenesisBytes, err := cmtjson.MarshalIndent(ag, "", "  ")
 	if err != nil {
 		return err
 	}
@@ -96,7 +96,7 @@ func AppGenesisFromReader(reader io.Reader) (*AppGenesis, error) {
 	}
 
 	var appGenesis AppGenesis
-	if err := json.Unmarshal(jsonBlob, &appGenesis); err != nil {
+	if err := cmtjson.Unmarshal(jsonBlob, &appGenesis); err != nil {
 		// fallback to CometBFT genesis
 		var ctmGenesis cmttypes.GenesisDoc
 		if err2 := cmtjson.Unmarshal(jsonBlob, &ctmGenesis); err2 != nil {

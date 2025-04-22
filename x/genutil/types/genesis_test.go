@@ -5,6 +5,7 @@ import (
 	"os"
 	"testing"
 
+	cmtjson "github.com/cometbft/cometbft/libs/json"
 	cmttypes "github.com/cometbft/cometbft/types"
 	"gotest.tools/v3/assert"
 	"gotest.tools/v3/golden"
@@ -19,9 +20,11 @@ func TestAppGenesis_Marshal(t *testing.T) {
 		ChainID:    "test",
 	}
 
-	out, err := json.Marshal(&genesis)
+	// Note: this should use cmtjson instead of encoding/json because the JSON file is decoded by celestia-core which still uses cmtjson.
+	// In practice, this manifests as int64 values being marshalled as strings in the JSON file.
+	out, err := cmtjson.Marshal(&genesis)
 	assert.NilError(t, err)
-	assert.Equal(t, string(out), `{"app_name":"simapp","app_version":"0.1.0","genesis_time":"0001-01-01T00:00:00Z","chain_id":"test","initial_height":0,"app_hash":null}`)
+	assert.Equal(t, string(out), `{"app_name":"simapp","app_version":"0.1.0","genesis_time":"0001-01-01T00:00:00Z","chain_id":"test","initial_height":"0","app_hash":null}`)
 }
 
 func TestAppGenesis_Unmarshal(t *testing.T) {
@@ -29,7 +32,7 @@ func TestAppGenesis_Unmarshal(t *testing.T) {
 	assert.NilError(t, err)
 
 	var genesis types.AppGenesis
-	err = json.Unmarshal(jsonBlob, &genesis)
+	err = cmtjson.Unmarshal(jsonBlob, &genesis)
 	assert.NilError(t, err)
 
 	assert.DeepEqual(t, genesis.ChainID, "demo")
