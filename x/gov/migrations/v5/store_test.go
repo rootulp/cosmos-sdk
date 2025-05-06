@@ -45,11 +45,12 @@ func TestMigrateStore(t *testing.T) {
 	require.NoError(t, cdc.Unmarshal(bz, &params))
 	require.NotNil(t, params)
 	require.Equal(t, v1.DefaultParams().ExpeditedMinDeposit, params.ExpeditedMinDeposit)
-	require.Equal(t, "utia", params.ExpeditedMinDeposit[0].Denom)
-	require.Equal(t, math.NewInt(50_000_000_000), params.ExpeditedMinDeposit[0].Amount) // 50,000 TIA
 	require.Equal(t, v1.DefaultParams().ExpeditedThreshold, params.ExpeditedThreshold)
 	require.Equal(t, v1.DefaultParams().ExpeditedVotingPeriod, params.ExpeditedVotingPeriod)
 	require.Equal(t, v1.DefaultParams().MinDepositRatio, params.MinDepositRatio)
+
+	require.Equal(t, "utia", params.ExpeditedMinDeposit[0].Denom)
+	require.Equal(t, math.NewInt(50_000_000_000), params.ExpeditedMinDeposit[0].Amount) // 50,000 TIA
 
 	// Check constitution
 	result, err := constitutionCollection.Get(ctx)
