@@ -36,7 +36,7 @@ func MigrateStore(ctx sdk.Context, storeService corestoretypes.KVStoreService, c
 	}
 
 	defaultParams := govv1.DefaultParams()
-	params.ExpeditedMinDeposit = defaultParams.ExpeditedMinDeposit
+	params.ExpeditedMinDeposit = sdk.NewCoins(sdk.NewCoin("utia", govv1.DefaultMinExpeditedDepositTokens))
 	params.ExpeditedVotingPeriod = defaultParams.ExpeditedVotingPeriod
 	params.ExpeditedThreshold = defaultParams.ExpeditedThreshold
 	params.ProposalCancelRatio = defaultParams.ProposalCancelRatio
