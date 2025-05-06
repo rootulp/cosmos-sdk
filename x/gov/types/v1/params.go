@@ -18,9 +18,8 @@ const (
 
 // Default governance params
 var (
-	tia                              = int64(1_000_000)             // 1 TIA = 1,000,000 utia
-	DefaultMinDepositTokens          = sdkmath.NewInt(10_000 * tia) // 10,000 TIA
-	DefaultMinExpeditedDepositTokens = sdkmath.NewInt(50_000 * tia) // 50,000 TIA
+	DefaultMinDepositTokens          = sdkmath.NewInt(10000000)
+	DefaultMinExpeditedDepositTokens = DefaultMinDepositTokens.Mul(sdkmath.NewInt(DefaultMinExpeditedDepositTokensRatio))
 	DefaultQuorum                    = sdkmath.LegacyNewDecWithPrec(334, 3)
 	DefaultThreshold                 = sdkmath.LegacyNewDecWithPrec(5, 1)
 	DefaultExpeditedThreshold        = sdkmath.LegacyNewDecWithPrec(667, 3)

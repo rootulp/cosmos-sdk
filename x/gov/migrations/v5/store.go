@@ -4,6 +4,7 @@ import (
 	"cosmossdk.io/collections"
 	corestoretypes "cosmossdk.io/core/store"
 
+	"cosmossdk.io/math"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	v4 "github.com/cosmos/cosmos-sdk/x/gov/migrations/v4"
@@ -36,7 +37,8 @@ func MigrateStore(ctx sdk.Context, storeService corestoretypes.KVStoreService, c
 	}
 
 	defaultParams := govv1.DefaultParams()
-	params.ExpeditedMinDeposit = sdk.NewCoins(sdk.NewCoin("utia", govv1.DefaultMinExpeditedDepositTokens))
+	tia := int64(1_000_000)                                                                 // 1 TIA = 1,000,000 utia
+	params.ExpeditedMinDeposit = sdk.NewCoins(sdk.NewCoin("utia", math.NewInt(50_000*tia))) // 50,000 TIA
 	params.ExpeditedVotingPeriod = defaultParams.ExpeditedVotingPeriod
 	params.ExpeditedThreshold = defaultParams.ExpeditedThreshold
 	params.ProposalCancelRatio = defaultParams.ProposalCancelRatio
