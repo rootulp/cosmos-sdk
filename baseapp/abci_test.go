@@ -216,11 +216,15 @@ func TestBaseAppShouldHalt(t *testing.T) {
 		require.True(t, app.shouldHalt(tmproto.Header{Height: 3}))
 		require.True(t, app.shouldHalt(tmproto.Header{Height: 4}))
 	})
-
 	t.Run("should halt if time is greater than or equal to halt time", func(t *testing.T) {
 		require.False(t, app.shouldHalt(tmproto.Header{Time: time.Unix(0, 0)}))
 		require.False(t, app.shouldHalt(tmproto.Header{Time: time.Unix(999, 0)}))
 		require.True(t, app.shouldHalt(tmproto.Header{Time: time.Unix(1000, 0)}))
 		require.True(t, app.shouldHalt(tmproto.Header{Time: time.Unix(1001, 0)}))
+	})
+	t.Run("should return false if halt is disabled", func(t *testing.T) {
+		app.haltDisabled = true
+		require.False(t, app.shouldHalt(tmproto.Header{Height: 3}))
+		require.False(t, app.shouldHalt(tmproto.Header{Time: time.Unix(1000, 0)}))
 	})
 }

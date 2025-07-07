@@ -36,6 +36,11 @@ func SetMinGasPrices(gasPricesStr string) func(*BaseApp) {
 }
 
 // SetHaltHeight returns a BaseApp option function that sets the halt block height.
+func SetHaltDisabled(v bool) func(*BaseApp) {
+	return func(bapp *BaseApp) { bapp.setHaltDisabled(v) }
+}
+
+// SetHaltHeight returns a BaseApp option function that sets the halt block height.
 func SetHaltHeight(blockHeight uint64) func(*BaseApp) {
 	return func(bapp *BaseApp) { bapp.setHaltHeight(blockHeight) }
 }

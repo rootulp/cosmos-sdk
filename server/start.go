@@ -44,6 +44,7 @@ const (
 	flagTraceStore         = "trace-store"
 	flagCPUProfile         = "cpu-profile"
 	FlagMinGasPrices       = "minimum-gas-prices"
+	FlagHaltDisabled       = "halt-disabled"
 	FlagHaltHeight         = "halt-height"
 	FlagHaltTime           = "halt-time"
 	FlagInterBlockCache    = "inter-block-cache"

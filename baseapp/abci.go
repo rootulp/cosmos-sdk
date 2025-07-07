@@ -404,10 +404,12 @@ func (app *BaseApp) Commit() abci.ResponseCommit {
 }
 
 func (app *BaseApp) shouldHalt(header tmproto.Header) bool {
+	if app.haltDisabled {
+		return false
+	}
 	if app.haltHeight > 0 && uint64(header.Height) >= app.haltHeight {
 		return true
 	}
-
 	if app.haltTime > 0 && header.Time.Unix() >= int64(app.haltTime) {
 		return true
 

@@ -97,6 +97,9 @@ type BaseApp struct { // nolint: maligned
 	// flag for sealing options and parameters to a BaseApp
 	sealed bool
 
+	// haltDisabled is a flag used by the multiplexer to disable the halt functionality.
+	haltDisabled bool
+
 	// block height at which to halt the chain and gracefully shutdown
 	haltHeight uint64
 
@@ -426,6 +429,10 @@ func (app *BaseApp) Init() error {
 
 func (app *BaseApp) setMinGasPrices(gasPrices sdk.DecCoins) {
 	app.minGasPrices = gasPrices
+}
+
+func (app *BaseApp) setHaltDisabled(v bool) {
+	app.haltDisabled = v
 }
 
 func (app *BaseApp) setHaltHeight(haltHeight uint64) {
