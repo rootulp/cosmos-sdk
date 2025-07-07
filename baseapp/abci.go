@@ -390,16 +390,7 @@ func (app *BaseApp) Commit() abci.ResponseCommit {
 	// empty/reset the deliver state
 	app.deliverState = nil
 
-	var halt bool
-
-	switch {
-	case app.haltHeight > 0 && uint64(header.Height) >= app.haltHeight:
-		halt = true
-
-	case app.haltTime > 0 && header.Time.Unix() >= int64(app.haltTime):
-		halt = true
-	}
-
+	halt := app.shouldHalt(header)
 	if halt {
 		// Halt the binary and allow Tendermint to receive the ResponseCommit
 		// response with the commit ID hash. This will allow the node to successfully
@@ -411,6 +402,18 @@ func (app *BaseApp) Commit() abci.ResponseCommit {
 	go app.snapshotManager.SnapshotIfApplicable(header.Height)
 
 	return res
+}
+
+func (app *BaseApp) shouldHalt(header tmproto.Header) bool {
+	if app.haltHeight > 0 && uint64(header.Height) >= app.haltHeight {
+		return true
+	}
+
+	if app.haltTime > 0 && header.Time.Unix() >= int64(app.haltTime) {
+		return true
+
+	}
+	return false
 }
 
 // halt attempts to gracefully shutdown the node via SIGINT and SIGTERM falling

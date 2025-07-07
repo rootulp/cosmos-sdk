@@ -3,6 +3,7 @@ package baseapp
 import (
 	"encoding/json"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/require"
 	abci "github.com/tendermint/tendermint/abci/types"
@@ -202,4 +203,24 @@ func (ps *paramStore) Get(_ sdk.Context, key []byte, ptr interface{}) {
 	if err := json.Unmarshal(bz, ptr); err != nil {
 		panic(err)
 	}
+}
+
+func TestBaseAppShouldHalt(t *testing.T) {
+	app := NewBaseApp("test", defaultLogger(), dbm.NewMemDB(), nil)
+	app.haltHeight = 3
+	app.haltTime = 1000
+
+	t.Run("should halt if height is greater than or equal to halt height", func(t *testing.T) {
+		require.False(t, app.shouldHalt(tmproto.Header{Height: 1}))
+		require.False(t, app.shouldHalt(tmproto.Header{Height: 2}))
+		require.True(t, app.shouldHalt(tmproto.Header{Height: 3}))
+		require.True(t, app.shouldHalt(tmproto.Header{Height: 4}))
+	})
+
+	t.Run("should halt if time is greater than or equal to halt time", func(t *testing.T) {
+		require.False(t, app.shouldHalt(tmproto.Header{Time: time.Unix(0, 0)}))
+		require.False(t, app.shouldHalt(tmproto.Header{Time: time.Unix(999, 0)}))
+		require.True(t, app.shouldHalt(tmproto.Header{Time: time.Unix(1000, 0)}))
+		require.True(t, app.shouldHalt(tmproto.Header{Time: time.Unix(1001, 0)}))
+	})
 }
