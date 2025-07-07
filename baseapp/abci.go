@@ -390,8 +390,7 @@ func (app *BaseApp) Commit() abci.ResponseCommit {
 	// empty/reset the deliver state
 	app.deliverState = nil
 
-	halt := app.shouldHalt(header)
-	if halt {
+	if app.shouldHalt(header) {
 		// Halt the binary and allow Tendermint to receive the ResponseCommit
 		// response with the commit ID hash. This will allow the node to successfully
 		// restart and process blocks assuming the halt configuration has been
