@@ -475,6 +475,7 @@ func (app *BaseApp) setIndexEvents(ie []string) {
 	for _, e := range ie {
 		app.indexEvents[e] = struct{}{}
 	}
+	fmt.Printf("app.indexEvents: %+v\n", app.indexEvents)
 }
 
 // Seal seals a BaseApp. It prohibits any further modifications to a BaseApp.
@@ -754,6 +755,7 @@ func (app *BaseApp) beginBlock(_ *abci.RequestFinalizeBlock) (sdk.BeginBlock, er
 		}
 
 		resp.Events = sdk.MarkEventsToIndex(resp.Events, app.indexEvents)
+		fmt.Printf("beginBlock resp.Events: %+v\n", resp.Events)
 	}
 
 	return resp, nil
@@ -792,6 +794,7 @@ func (app *BaseApp) deliverTx(tx []byte) *abci.ExecTxResult {
 		Data:      result.Data,
 		Events:    sdk.MarkEventsToIndex(result.Events, app.indexEvents),
 	}
+	fmt.Printf("deliverTx resp.Events: %+v\n", resp.Events)
 
 	return resp
 }
@@ -816,6 +819,7 @@ func (app *BaseApp) endBlock(_ context.Context) (sdk.EndBlock, error) {
 		}
 
 		eb.Events = sdk.MarkEventsToIndex(eb.Events, app.indexEvents)
+		fmt.Printf("endBlock eb.Events: %+v\n", eb.Events)
 		endblock = eb
 	}
 

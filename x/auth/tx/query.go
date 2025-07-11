@@ -23,6 +23,7 @@ import (
 // Note, if an empty orderBy is provided, the default behavior is ascending. If
 // negative values are provided for page or limit, defaults will be used.
 func QueryTxsByEvents(clientCtx client.Context, page, limit int, query, orderBy string) (*sdk.SearchTxsResult, error) {
+	fmt.Printf("QueryTxsByEvents: %s\n", query)
 	if len(query) == 0 {
 		return nil, errors.New("query cannot be empty")
 	}
@@ -46,16 +47,19 @@ func QueryTxsByEvents(clientCtx client.Context, page, limit int, query, orderBy 
 	if err != nil {
 		return nil, fmt.Errorf("failed to search for txs: %w", err)
 	}
+	fmt.Printf("resTxs: %+v\n", resTxs)
 
 	resBlocks, err := getBlocksForTxResults(clientCtx, resTxs.Txs)
 	if err != nil {
 		return nil, err
 	}
+	fmt.Printf("resBlocks: %+v\n", resBlocks)
 
 	txs, err := formatTxResults(clientCtx.TxConfig, resTxs.Txs, resBlocks)
 	if err != nil {
 		return nil, err
 	}
+	fmt.Printf("txs: %+v\n", txs)
 
 	return sdk.NewSearchTxsResult(uint64(resTxs.TotalCount), uint64(len(txs)), uint64(page), uint64(limit), txs), nil
 }
