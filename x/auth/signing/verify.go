@@ -67,17 +67,22 @@ func VerifySignature(
 	handler *txsigning.HandlerMap,
 	txData txsigning.TxData,
 ) error {
+	fmt.Printf("Inside VerifySignature")
 	switch data := signatureData.(type) {
 	case *signing.SingleSignatureData:
 		signMode, err := internalSignModeToAPI(data.SignMode)
+		fmt.Printf("signMode: %v\n", signMode)
 		if err != nil {
 			return err
 		}
 		signBytes, err := handler.GetSignBytes(ctx, signMode, signerData, txData)
+		fmt.Printf("signBytes: %v\n", signBytes)
 		if err != nil {
 			return err
 		}
 		if !pubKey.VerifySignature(signBytes, data.Signature) {
+			fmt.Printf("pubKey: %v\n", pubKey)
+			fmt.Printf("data.Signature: %v\n", data.Signature)
 			return fmt.Errorf("unable to verify single signer signature")
 		}
 		return nil
