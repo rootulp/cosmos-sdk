@@ -433,17 +433,6 @@ func (k Keeper) ApplyUpgrade(ctx context.Context, plan types.Plan) error {
 		return err
 	}
 
-	// incremement the app version and set it in state and baseapp
-	if k.versionModifier != nil {
-		currentAppVersion, err := k.versionModifier.AppVersion(ctx)
-		if err != nil {
-			return err
-		}
-
-		if err := k.versionModifier.SetAppVersion(ctx, currentAppVersion+1); err != nil {
-			return err
-		}
-	}
 	// Must clear IBC state after upgrade is applied as it is stored separately from the upgrade plan.
 	// This will prevent resubmission of upgrade msg after upgrade is already completed.
 	err = k.ClearIBCState(ctx, plan.Height)
