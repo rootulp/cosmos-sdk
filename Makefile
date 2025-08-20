@@ -481,3 +481,16 @@ localnet-start: localnet-stop localnet-build-env localnet-build-nodes
 localnet-debug: localnet-stop localnet-build-dlv localnet-build-nodes
 
 .PHONY: localnet-start localnet-stop localnet-debug localnet-build-env localnet-build-dlv localnet-build-nodes
+
+tidy-all:
+	@echo "Running go mod tidy in all sub-modules..."
+	@finalec=0; \
+	for module in $(SUB_MODULES); do \
+		echo "Running go mod tidy in $$module"; \
+		cd ${CURRENT_DIR}/$$module && go mod tidy; \
+		ec=$$?; \
+		if [ "$$ec" -ne '0' ]; then finalec=$$ec; fi; \
+		cd ${CURRENT_DIR}; \
+	done; \
+	exit $$finalec
+.PHONY: tidy-all
