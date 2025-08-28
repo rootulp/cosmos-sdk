@@ -12,6 +12,8 @@ import (
 	"cosmossdk.io/errors"
 	"cosmossdk.io/store/prefix"
 
+	stderrors "errors"
+
 	"github.com/cosmos/cosmos-sdk/runtime"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/query"
@@ -237,19 +239,25 @@ func (k Querier) DelegationRewards(ctx context.Context, req *types.QueryDelegati
 		return nil, err
 	}
 
-	delAddr := sdk.AccAddress(delAdr)
-	valAddr := sdk.ValAddress(valAdr)
-	outstanding, err := k.Keeper.GetOutstandingRewards(ctx, delAddr, valAddr)
-	if err != nil {
-		return nil, err
-	}
+	// Ignore the error returned by Delegation because we must check the
+	// outstanding rewards regardless of whether a delegation still exists.
+	del, _ := k.stakingKeeper.Delegation(ctx, delAdr, valAdr)
+	outstanding, err := k.UserOutstandingRewards.Get(
+		ctx,
+		collections.Join(sdk.AccAddress(delAdr), sdk.ValAddress(valAdr)),
+	)
 
-	del, err := k.stakingKeeper.Delegation(ctx, delAddr, valAddr)
-	if err != nil || del == nil {
-		response := &types.QueryDelegationRewardsResponse{Rewards: sdk.NewDecCoinsFromCoins(outstanding.Rewards...)}
-		return response, nil
-	}
+	if del == nil {
+		if stderrors.Is(err, collections.ErrNotFound) {
+			return nil, types.ErrNoDelegationExists
+		} else if err != nil {
+			return nil, err
+		}
 
+		return &types.QueryDelegationRewardsResponse{
+			Rewards: sdk.NewDecCoinsFromCoins(outstanding.Rewards...),
+		}, nil
+	}
 	endingPeriod, err := k.IncrementValidatorPeriod(ctx, val)
 	if err != nil {
 		return nil, err
