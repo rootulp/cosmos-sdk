@@ -198,7 +198,7 @@ func TestDelegationRewards(t *testing.T) {
 		require.Equal(t, expectedRewards, resp.Rewards)
 	})
 
-	t.Run("query with outstanding rewards only", func(t *testing.T) {
+	t.Run("query with outstanding rewards only and (nil, nil) delegation response", func(t *testing.T) {
 		val, err := distrtestutil.CreateValidator(valConsPk0, math.NewInt(100))
 		require.NoError(t, err)
 
@@ -220,6 +220,34 @@ func TestDelegationRewards(t *testing.T) {
 
 		stakingKeeper.EXPECT().Validator(gomock.Any(), newValAddr).Return(val, nil).AnyTimes()
 		stakingKeeper.EXPECT().Delegation(gomock.Any(), newDelegatorAddr, newValAddr).Return(nil, nil).AnyTimes()
+
+		resp, err := querier.DelegationRewards(ctx, req)
+		require.NoError(t, err)
+		require.NotNil(t, resp)
+		require.Equal(t, sdk.NewDecCoinsFromCoins(outstandingRewards...), resp.Rewards)
+	})
+
+	t.Run("query with outstanding rewards only and (nil, ErrNoDelegation) delegation response", func(t *testing.T) {
+		val, err := distrtestutil.CreateValidator(valConsPk0, math.NewInt(100))
+		require.NoError(t, err)
+
+		newValAddr := sdk.ValAddress(valConsAddr2)
+		newDelegatorAddr := sdk.AccAddress(valConsAddr2)
+
+		req := &types.QueryDelegationRewardsRequest{
+			DelegatorAddress: newDelegatorAddr.String(),
+			ValidatorAddress: newValAddr.String(),
+		}
+
+		// Set up outstanding rewards without delegation
+		outstandingRewards := sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, math.NewInt(50)))
+		err = distrKeeper.UserOutstandingRewards.Set(ctx, collections.Join(newDelegatorAddr, newValAddr), types.UserOutstandingRewards{
+			Rewards: outstandingRewards,
+		})
+		require.NoError(t, err)
+
+		stakingKeeper.EXPECT().Validator(gomock.Any(), newValAddr).Return(val, nil).AnyTimes()
+		stakingKeeper.EXPECT().Delegation(gomock.Any(), newDelegatorAddr, newValAddr).Return(nil, stakingtypes.ErrNoDelegation).AnyTimes()
 
 		resp, err := querier.DelegationRewards(ctx, req)
 		require.NoError(t, err)
