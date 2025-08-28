@@ -67,8 +67,9 @@ func (k Querier) ValidatorDistributionInfo(ctx context.Context, req *types.Query
 	delAdr := sdk.AccAddress(valAdr)
 
 	del, err := k.stakingKeeper.Delegation(ctx, delAdr, valAdr)
-	// If there's an error getting the delegation (either key not found or ErrNoDelegation),
-	// we should still check for outstanding rewards (similar to WithdrawDelegationRewards)
+	if err != nil {
+		return nil, err
+	}
 
 	if del == nil {
 		return nil, types.ErrNoDelegationExists
