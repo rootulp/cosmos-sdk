@@ -254,4 +254,44 @@ func TestDelegationRewards(t *testing.T) {
 		require.NotNil(t, resp)
 		require.Equal(t, sdk.NewDecCoinsFromCoins(outstandingRewards...), resp.Rewards)
 	})
+
+	t.Run("query for rewards from delegation + outstanding rewards", func(t *testing.T) {
+		val, err := distrtestutil.CreateValidator(valConsPk0, math.NewInt(100))
+		require.NoError(t, err)
+
+		req := &types.QueryDelegationRewardsRequest{
+			DelegatorAddress: delegatorAddr.String(),
+			ValidatorAddress: valAddr.String(),
+		}
+		del := stakingtypes.NewDelegation(delegatorAddr.String(), valAddr.String(), val.DelegatorShares)
+
+		stakingKeeper.EXPECT().Validator(gomock.Any(), valAddr).Return(val, nil).AnyTimes()
+		stakingKeeper.EXPECT().Delegation(gomock.Any(), delegatorAddr, valAddr).Return(del, nil).AnyTimes()
+
+		err = distrtestutil.CallCreateValidatorHooks(ctx, distrKeeper, sdk.AccAddress(delegatorAddr), valAddr)
+		require.NoError(t, err)
+
+		// Delegate and set up delegation hooks
+		err = distrKeeper.Hooks().AfterDelegationModified(ctx, delegatorAddr, valAddr)
+		require.NoError(t, err)
+
+		// Allocate some rewards
+		ctx = ctx.WithBlockHeight(ctx.BlockHeight() + 1)
+		rewards := int64(20)
+		tokens := sdk.DecCoins{{Denom: sdk.DefaultBondDenom, Amount: math.LegacyNewDec(rewards)}}
+		require.NoError(t, distrKeeper.AllocateTokensToValidator(ctx, val, tokens))
+
+		outstanding := int64(50)
+		outstandingRewards := sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, math.NewInt(outstanding)))
+		err = distrKeeper.UserOutstandingRewards.Set(ctx, collections.Join(delegatorAddr, valAddr), types.UserOutstandingRewards{
+			Rewards: outstandingRewards,
+		})
+		require.NoError(t, err)
+
+		resp, err := querier.DelegationRewards(ctx, req)
+		require.NoError(t, err)
+		require.NotNil(t, resp)
+		expectedRewards := sdk.DecCoins{{Denom: sdk.DefaultBondDenom, Amount: math.LegacyNewDec(rewards + outstanding)}}
+		require.Equal(t, expectedRewards, resp.Rewards)
+	})
 }

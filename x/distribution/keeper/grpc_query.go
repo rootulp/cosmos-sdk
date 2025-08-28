@@ -2,7 +2,6 @@ package keeper
 
 import (
 	"context"
-	stderrors "errors"
 	"maps"
 	"slices"
 
@@ -10,7 +9,7 @@ import (
 	"google.golang.org/grpc/status"
 
 	"cosmossdk.io/collections"
-	"cosmossdk.io/errors"
+	sdkerrors "cosmossdk.io/errors"
 	"cosmossdk.io/store/prefix"
 
 	"github.com/cosmos/cosmos-sdk/runtime"
@@ -62,15 +61,14 @@ func (k Querier) ValidatorDistributionInfo(ctx context.Context, req *types.Query
 	}
 
 	if val == nil {
-		return nil, errors.Wrap(types.ErrNoValidatorExists, req.ValidatorAddress)
+		return nil, sdkerrors.Wrap(types.ErrNoValidatorExists, req.ValidatorAddress)
 	}
 
 	delAdr := sdk.AccAddress(valAdr)
 
 	del, err := k.stakingKeeper.Delegation(ctx, delAdr, valAdr)
-	if err != nil {
-		return nil, err
-	}
+	// If there's an error getting the delegation (either key not found or ErrNoDelegation),
+	// we should still check for outstanding rewards (similar to WithdrawDelegationRewards)
 
 	if del == nil {
 		return nil, types.ErrNoDelegationExists
@@ -120,7 +118,7 @@ func (k Querier) ValidatorOutstandingRewards(ctx context.Context, req *types.Que
 	}
 
 	if validator == nil {
-		return nil, errors.Wrapf(types.ErrNoValidatorExists, "%v", req.ValidatorAddress)
+		return nil, sdkerrors.Wrapf(types.ErrNoValidatorExists, "%v", req.ValidatorAddress)
 	}
 
 	rewards, err := k.GetValidatorOutstandingRewards(ctx, valAdr)
@@ -152,7 +150,7 @@ func (k Querier) ValidatorCommission(ctx context.Context, req *types.QueryValida
 	}
 
 	if validator == nil {
-		return nil, errors.Wrapf(types.ErrNoValidatorExists, "%v", req.ValidatorAddress)
+		return nil, sdkerrors.Wrapf(types.ErrNoValidatorExists, "%v", req.ValidatorAddress)
 	}
 	commission, err := k.GetValidatorAccumulatedCommission(ctx, valAdr)
 	if err != nil {
@@ -230,7 +228,7 @@ func (k Querier) DelegationRewards(ctx context.Context, req *types.QueryDelegati
 	}
 
 	if val == nil {
-		return nil, errors.Wrap(types.ErrNoValidatorExists, req.ValidatorAddress)
+		return nil, sdkerrors.Wrap(types.ErrNoValidatorExists, req.ValidatorAddress)
 	}
 
 	delAdr, err := k.authKeeper.AddressCodec().StringToBytes(req.DelegatorAddress)
@@ -238,28 +236,17 @@ func (k Querier) DelegationRewards(ctx context.Context, req *types.QueryDelegati
 		return nil, err
 	}
 
-	del, err := k.stakingKeeper.Delegation(ctx, delAdr, valAdr)
+	delAddr := sdk.AccAddress(delAdr)
+	valAddr := sdk.ValAddress(valAdr)
+	outstanding, err := k.Keeper.GetOutstandingRewards(ctx, delAddr, valAddr)
 	if err != nil {
 		return nil, err
 	}
 
-	outstanding, err := k.UserOutstandingRewards.Get(
-		ctx,
-		collections.Join(sdk.AccAddress(delAdr), sdk.ValAddress(valAdr)),
-	)
-	// we do not need to check errors if del is not nil
-	// an empty struct is fine for the use case.
-
-	if del == nil {
-		if stderrors.Is(err, collections.ErrNotFound) {
-			return nil, types.ErrNoDelegationExists
-		} else if err != nil {
-			return nil, err
-		}
-
-		return &types.QueryDelegationRewardsResponse{
-			Rewards: sdk.NewDecCoinsFromCoins(outstanding.Rewards...),
-		}, nil
+	del, err := k.stakingKeeper.Delegation(ctx, delAddr, valAddr)
+	if err != nil || del == nil {
+		response := &types.QueryDelegationRewardsResponse{Rewards: sdk.NewDecCoinsFromCoins(outstanding.Rewards...)}
+		return response, nil
 	}
 
 	endingPeriod, err := k.IncrementValidatorPeriod(ctx, val)

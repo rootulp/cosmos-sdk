@@ -288,3 +288,16 @@ func (k Keeper) FundCommunityPool(ctx context.Context, amount sdk.Coins, sender 
 	feePool.CommunityPool = feePool.CommunityPool.Add(sdk.NewDecCoinsFromCoins(amount...)...)
 	return k.FeePool.Set(ctx, feePool)
 }
+
+func (k Keeper) GetOutstandingRewards(ctx context.Context, delAddr sdk.AccAddress, valAddr sdk.ValAddress) (types.UserOutstandingRewards, error) {
+	key := collections.Join(delAddr, valAddr)
+	outstanding, err := k.UserOutstandingRewards.Get(ctx, key)
+	if errors.Is(err, collections.ErrNotFound) {
+		// If there are no outstanding rewards, return an empty slice of coins.
+		return types.UserOutstandingRewards{Rewards: []sdk.Coin{}}, nil
+	}
+	if err != nil {
+		return types.UserOutstandingRewards{}, err
+	}
+	return outstanding, nil
+}
