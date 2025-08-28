@@ -9,7 +9,7 @@ import (
 	"google.golang.org/grpc/status"
 
 	"cosmossdk.io/collections"
-	sdkerrors "cosmossdk.io/errors"
+	"cosmossdk.io/errors"
 	"cosmossdk.io/store/prefix"
 
 	"github.com/cosmos/cosmos-sdk/runtime"
@@ -61,7 +61,7 @@ func (k Querier) ValidatorDistributionInfo(ctx context.Context, req *types.Query
 	}
 
 	if val == nil {
-		return nil, sdkerrors.Wrap(types.ErrNoValidatorExists, req.ValidatorAddress)
+		return nil, errors.Wrap(types.ErrNoValidatorExists, req.ValidatorAddress)
 	}
 
 	delAdr := sdk.AccAddress(valAdr)
@@ -118,7 +118,7 @@ func (k Querier) ValidatorOutstandingRewards(ctx context.Context, req *types.Que
 	}
 
 	if validator == nil {
-		return nil, sdkerrors.Wrapf(types.ErrNoValidatorExists, "%v", req.ValidatorAddress)
+		return nil, errors.Wrapf(types.ErrNoValidatorExists, "%v", req.ValidatorAddress)
 	}
 
 	rewards, err := k.GetValidatorOutstandingRewards(ctx, valAdr)
@@ -150,7 +150,7 @@ func (k Querier) ValidatorCommission(ctx context.Context, req *types.QueryValida
 	}
 
 	if validator == nil {
-		return nil, sdkerrors.Wrapf(types.ErrNoValidatorExists, "%v", req.ValidatorAddress)
+		return nil, errors.Wrapf(types.ErrNoValidatorExists, "%v", req.ValidatorAddress)
 	}
 	commission, err := k.GetValidatorAccumulatedCommission(ctx, valAdr)
 	if err != nil {
@@ -228,7 +228,7 @@ func (k Querier) DelegationRewards(ctx context.Context, req *types.QueryDelegati
 	}
 
 	if val == nil {
-		return nil, sdkerrors.Wrap(types.ErrNoValidatorExists, req.ValidatorAddress)
+		return nil, errors.Wrap(types.ErrNoValidatorExists, req.ValidatorAddress)
 	}
 
 	delAdr, err := k.authKeeper.AddressCodec().StringToBytes(req.DelegatorAddress)
