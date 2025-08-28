@@ -2,6 +2,7 @@ package keeper
 
 import (
 	"context"
+	stderrors "errors"
 	"maps"
 	"slices"
 
@@ -11,9 +12,6 @@ import (
 	"cosmossdk.io/collections"
 	"cosmossdk.io/errors"
 	"cosmossdk.io/store/prefix"
-
-	stderrors "errors"
-
 	"github.com/cosmos/cosmos-sdk/runtime"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/query"
