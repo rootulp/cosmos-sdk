@@ -186,7 +186,7 @@ func (p Params) ValidateBasic() error {
 	if p.ExpeditedVotingPeriod.Seconds() <= 0 {
 		return fmt.Errorf("expedited voting period must be positive: %s", p.ExpeditedVotingPeriod)
 	}
-	if p.ExpeditedVotingPeriod.Seconds() >= p.VotingPeriod.Seconds() {
+	if p.ExpeditedVotingPeriod.Seconds() > p.VotingPeriod.Seconds() {
 		return fmt.Errorf("expedited voting period %s must be strictly less that the regular voting period %s", p.ExpeditedVotingPeriod, p.VotingPeriod)
 	}
 
