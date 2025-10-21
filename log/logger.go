@@ -2,6 +2,7 @@ package log
 
 import (
 	"io"
+	"strings"
 
 	"github.com/rs/zerolog"
 )
@@ -27,6 +28,14 @@ type Logger interface {
 	// Debug takes a message and a set of key/value pairs and logs with level DEBUG.
 	// The key of the tuple must be a string.
 	Debug(msg string, keyVals ...any)
+
+	// Trace takes a message and a set of key/value pairs and logs with level TRACE.
+	// The key of the tuple must be a string.
+	Trace(msg string, keyVals ...any)
+
+	// Warn takes a message and a set of key/value pairs and logs with level WARN.
+	// The key of the tuple must be a string.
+	Warn(msg string, keyVals ...any)
 
 	// With returns a new wrapped logger with additional context provided by a set.
 	With(keyVals ...any) Logger
@@ -100,7 +109,23 @@ func (l zeroLogWrapper) Error(msg string, keyVals ...interface{}) {
 // Debug takes a message and a set of key/value pairs and logs with level ERR.
 // The key of the tuple must be a string.
 func (l zeroLogWrapper) Debug(msg string, keyVals ...interface{}) {
+	if strings.Contains(msg, "recursiveRemove") || strings.Contains(msg, "SAVE TREE") || strings.Contains(msg, "BATCH SAVE") {
+		l.Trace(msg, keyVals...)
+		return
+	}
 	l.Logger.Debug().Fields(keyVals).Msg(msg)
+}
+
+// Trace takes a message and a set of key/value pairs and logs with level TRACE.
+// The key of the tuple must be a string.
+func (l zeroLogWrapper) Trace(msg string, keyVals ...interface{}) {
+	l.Logger.Trace().Fields(keyVals).Msg(msg)
+}
+
+// Warn takes a message and a set of key/value pairs and logs with level WARN.
+// The key of the tuple must be a string.
+func (l zeroLogWrapper) Warn(msg string, keyVals ...interface{}) {
+	l.Logger.Warn().Fields(keyVals).Msg(msg)
 }
 
 // With returns a new wrapped logger with additional context provided by a set.
@@ -129,5 +154,7 @@ type nopLogger struct{}
 func (nopLogger) Info(string, ...any)  {}
 func (nopLogger) Error(string, ...any) {}
 func (nopLogger) Debug(string, ...any) {}
+func (nopLogger) Trace(string, ...any) {}
+func (nopLogger) Warn(string, ...any)  {}
 func (nopLogger) With(...any) Logger   { return nopLogger{} }
 func (nopLogger) Impl() any            { return nopLogger{} }
