@@ -1,3 +1,4 @@
+// Package server provides utilities for running a Cosmos SDK application server.
 package server
 
 import (
@@ -13,20 +14,9 @@ type CometLoggerWrapper struct {
 	log.Logger
 }
 
-// Trace implements the CometBFT Logger trace-level method. If the wrapped
-// logger exposes a Trace method it is used, otherwise the call is downgraded
-// to Debug to avoid losing trace output entirely.
+// Trace implements the CometBFT Logger trace-level method.
 func (cmt CometLoggerWrapper) Trace(msg string, keyVals ...interface{}) {
-	type traceLogger interface {
-		Trace(string, ...interface{})
-	}
-
-	if logger, ok := cmt.Logger.(traceLogger); ok && logger != nil {
-		logger.Trace(msg, keyVals...)
-		return
-	}
-
-	cmt.Logger.Debug(msg, keyVals...)
+	cmt.Logger.Trace(msg, keyVals...)
 }
 
 // With returns a new wrapped logger with additional context provided by a set
