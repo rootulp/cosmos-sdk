@@ -1323,10 +1323,6 @@ func (app *BaseApp) CreateQueryContext(height int64, prove bool) (sdk.Context, e
 // minRetainBlocks configuration, the retentionHeight is the smallest height that
 // satisfies:
 //
-// - Unbonding (safety threshold) time: The block interval in which validators
-// can be economically punished for misbehavior. Blocks in this interval must be
-// auditable e.g. by the light client.
-//
 // - Logical store snapshot interval: The block interval at which the underlying
 // logical store database is persisted to disk, e.g. every 10000 heights. Blocks
 // since the last IAVL snapshot must be available for replay on application restart.
@@ -1365,16 +1361,6 @@ func (app *BaseApp) GetBlockRetentionHeight(commitHeight int64) int64 {
 	// constraints. All blocks below (commitHeight-retentionHeight) are pruned
 	// from CometBFT.
 	var retentionHeight int64
-
-	// Define the number of blocks needed to protect against misbehaving validators
-	// which allows light clients to operate safely. Note, we piggy back of the
-	// evidence parameters instead of computing an estimated number of blocks based
-	// on the unbonding period and block commitment time as the two should be
-	// equivalent.
-	cp := app.GetConsensusParams(app.finalizeBlockState.Context())
-	if cp.Evidence != nil && cp.Evidence.MaxAgeNumBlocks > 0 {
-		retentionHeight = commitHeight - cp.Evidence.MaxAgeNumBlocks
-	}
 
 	if app.snapshotManager != nil {
 		snapshotRetentionHeights := app.snapshotManager.GetSnapshotBlockRetentionHeights()

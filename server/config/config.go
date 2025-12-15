@@ -70,9 +70,8 @@ type BaseConfig struct {
 	// "pruning-*" configurations.
 	//
 	// Note: CometBFT block pruning is dependant on this parameter in conjunction
-	// with the unbonding (safety threshold) period, state pruning and state sync
-	// snapshot parameters to determine the correct minimum value of
-	// ResponseCommit.RetainHeight.
+	// with state pruning and state sync snapshot parameters to determine the
+	// correct minimum value of ResponseCommit.RetainHeight.
 	MinRetainBlocks uint64 `mapstructure:"min-retain-blocks"`
 
 	// InterBlockCache enables inter-block caching.
