@@ -1279,11 +1279,11 @@ func TestABCI_GetBlockRetentionHeight(t *testing.T) {
 			commitHeight: 499000,
 			expected:     0,
 		},
-		"pruning unbonding time only": {
+		"pruning min retention with evidence age set": {
 			bapp:         baseapp.NewBaseApp(name, logger, db, nil, baseapp.SetMinRetainBlocks(1)),
 			maxAgeBlocks: 362880,
 			commitHeight: 499000,
-			expected:     136120,
+			expected:     498999,
 		},
 		"pruning iavl snapshot only": {
 			bapp: baseapp.NewBaseApp(
@@ -1322,7 +1322,7 @@ func TestABCI_GetBlockRetentionHeight(t *testing.T) {
 				baseapp.SetMinRetainBlocks(400000),
 				baseapp.SetSnapshot(snapshotStore, snapshottypes.NewSnapshotOptions(50000, 3)),
 			),
-			maxAgeBlocks: 362880,
+			maxAgeBlocks: 0,
 			commitHeight: 499000,
 			expected:     99000,
 		},
@@ -1333,7 +1333,7 @@ func TestABCI_GetBlockRetentionHeight(t *testing.T) {
 				baseapp.SetMinRetainBlocks(400000),
 				baseapp.SetSnapshot(snapshotStore, snapshottypes.NewSnapshotOptions(50000, 3)),
 			),
-			maxAgeBlocks: 362880,
+			maxAgeBlocks: 0,
 			commitHeight: 10000,
 			expected:     0,
 		},
@@ -1344,9 +1344,37 @@ func TestABCI_GetBlockRetentionHeight(t *testing.T) {
 				baseapp.SetMinRetainBlocks(0),
 				baseapp.SetSnapshot(snapshotStore, snapshottypes.NewSnapshotOptions(50000, 3)),
 			),
-			maxAgeBlocks: 362880,
+			maxAgeBlocks: 0,
 			commitHeight: 499000,
 			expected:     0,
+		},
+		"aggressive pruning with evidence age set": {
+			bapp: baseapp.NewBaseApp(
+				name, logger, db, nil,
+				baseapp.SetMinRetainBlocks(1000),
+			),
+			maxAgeBlocks: 362880,
+			commitHeight: 499000,
+			expected:     498000,
+		},
+		"evidence age ignored when minRetainBlocks is lower": {
+			bapp: baseapp.NewBaseApp(
+				name, logger, db, nil,
+				baseapp.SetMinRetainBlocks(10000),
+			),
+			maxAgeBlocks: 362880,
+			commitHeight: 499000,
+			expected:     489000,
+		},
+		"minRetainBlocks takes precedence when more restrictive": {
+			bapp: baseapp.NewBaseApp(
+				name, logger, db, nil,
+				baseapp.SetMinRetainBlocks(100000),
+				baseapp.SetSnapshot(snapshotStore, snapshottypes.NewSnapshotOptions(10000, 1)),
+			),
+			maxAgeBlocks: 362880,
+			commitHeight: 499000,
+			expected:     399000,
 		},
 	}
 
