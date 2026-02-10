@@ -64,3 +64,6 @@ debug_container.log
 /x/genutil/data/priv_validator_state.json
 .gocache
 .local-go
+
+# Claude Code local settings
+.claude/*.local.json
