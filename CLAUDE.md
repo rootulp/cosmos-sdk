@@ -4,7 +4,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Repository Overview
 
-This is Celestia's fork of the Cosmos SDK (`release/v0.46.x-celestia` branch), a framework for building application-specific blockchains in Go. It uses CometBFT (v0.38.5) for consensus and Go 1.21+.
+This is Celestia's fork of the Cosmos SDK, a framework for building application-specific blockchains in Go. It uses CometBFT (v0.38.5) for consensus and Go 1.21+.
+
+The default branch on https://github.com/celestiaorg/cosmos-sdk is `release/v0.52.x-celestia`.
 
 ## Build Commands
 
@@ -58,32 +60,34 @@ make proto-lint         # Lint proto files with buf
 ### Monorepo with Multiple Go Modules
 
 The repo contains many independent Go modules coordinated via `go.work`:
-- Root module (`github.com/cosmos/cosmos-sdk`) — core SDK
-- `cosmossdk.io/core`, `cosmossdk.io/store`, `cosmossdk.io/math`, `cosmossdk.io/log`, etc. — foundation libraries
-- `x/{module}` — each SDK module has its own `go.mod`
-- `simapp/` — test/reference application
-- `tests/` — integration and E2E tests (separate module)
+
+* Root module (`github.com/cosmos/cosmos-sdk`) — core SDK
+* `cosmossdk.io/core`, `cosmossdk.io/store`, `cosmossdk.io/math`, `cosmossdk.io/log`, etc. — foundation libraries
+* `x/{module}` — each SDK module has its own `go.mod`
+* `simapp/` — test/reference application
+* `tests/` — integration and E2E tests (separate module)
 
 ### Key Packages
 
-- **`baseapp/`** — ABCI application implementation, message routing, state management
-- **`types/`** — Core types (addresses, coins, context, events, errors, handlers)
-- **`codec/`** — Amino and Protobuf serialization
-- **`server/`** — CometBFT integration, gRPC server, app configuration
-- **`runtime/`** — Module execution wiring
-- **`crypto/`** — Key types (secp256k1, ed25519, multisig), Ledger support
-- **`client/`** — CLI and gRPC client utilities
-- **`depinject/`** — Dependency injection framework for module initialization
-- **`collections/`** — Type-safe data structure abstractions over KV store
+* **`baseapp/`** — ABCI application implementation, message routing, state management
+* **`types/`** — Core types (addresses, coins, context, events, errors, handlers)
+* **`codec/`** — Amino and Protobuf serialization
+* **`server/`** — CometBFT integration, gRPC server, app configuration
+* **`runtime/`** — Module execution wiring
+* **`crypto/`** — Key types (secp256k1, ed25519, multisig), Ledger support
+* **`client/`** — CLI and gRPC client utilities
+* **`depinject/`** — Dependency injection framework for module initialization
+* **`collections/`** — Type-safe data structure abstractions over KV store
 
 ### Module Pattern (x/{module}/)
 
 Each module follows a consistent structure:
-- `keeper/` — Business logic and state access
-- `types/` — Message types, storage keys, errors, params
-- `module.go` — `AppModule` interface implementation (lifecycle hooks)
-- `genesis.go` — Genesis import/export
-- `simulation/` — Randomized simulation testing
+
+* `keeper/` — Business logic and state access
+* `types/` — Message types, storage keys, errors, params
+* `module.go` — `AppModule` interface implementation (lifecycle hooks)
+* `genesis.go` — Genesis import/export
+* `simulation/` — Randomized simulation testing
 
 Modules communicate through **keepers** (direct method calls) and **hooks** (event-driven callbacks). Messages (`Msg` types) are routed to handlers via the module's message server.
 
@@ -93,7 +97,7 @@ Modules communicate through **keepers** (direct method calls) and **hooks** (eve
 
 ## Code Conventions
 
-- Determinism is critical — all state machine code must produce identical results given identical inputs
-- Use `require`/`assert` from testify in tests (not `t.Skip` or `t.Fail`)
-- Thread safety must be explicitly documented where relevant
-- Generated protobuf files (`*.pb.go`, `*.pb.gw.go`, `*.pulsar.go`) should not be edited manually
+* Determinism is critical — all state machine code must produce identical results given identical inputs
+* Use `require`/`assert` from testify in tests (not `t.Skip` or `t.Fail`)
+* Thread safety must be explicitly documented where relevant
+* Generated protobuf files (`*.pb.go`, `*.pb.gw.go`, `*.pulsar.go`) should not be edited manually
