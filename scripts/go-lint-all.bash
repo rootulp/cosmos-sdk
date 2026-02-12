@@ -5,12 +5,17 @@ set -e -o pipefail
 REPO_ROOT="$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )/.." &> /dev/null && pwd )"
 export REPO_ROOT
 
+# Resolve the golangci-lint binary from the root module's tool directive once,
+# so submodules (which lack their own tool directive) can reuse it.
+GOLANGCI_LINT="$(cd "${REPO_ROOT}" && go tool -n golangci-lint)"
+export GOLANGCI_LINT
+
 lint_module() {
   local root="$1"
   shift
   cd "$(dirname "$root")" &&
     echo "linting $(grep "^module" go.mod) [$(date -Iseconds -u)]" &&
-    golangci-lint run ./... -c "${REPO_ROOT}/.golangci.yml" "$@"
+    "$GOLANGCI_LINT" run ./... -c "${REPO_ROOT}/.golangci.yml" "$@"
 }
 export -f lint_module
 
@@ -31,7 +36,7 @@ else
   for f in $(dirname $(echo "$GIT_DIFF" | tr -d "'") | uniq); do
     echo "linting $f [$(date -Iseconds -u)]" &&
     cd $f &&
-    golangci-lint run ./... -c "${REPO_ROOT}/.golangci.yml" "$@" &&
+    "$GOLANGCI_LINT" run ./... -c "${REPO_ROOT}/.golangci.yml" "$@" &&
     cd $REPO_ROOT
   done
 fi
